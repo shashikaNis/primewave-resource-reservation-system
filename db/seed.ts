@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { reservations, resources, users } from "./schema";
+import bcrypt from "bcryptjs";
 
 const db = drizzle(process.env.DATABASE_URL!);
 function dateAt(days: number, hour: number) {
@@ -18,9 +19,9 @@ async function main() {
   const [admin, nimal, kamala] = await db
     .insert(users)
     .values([
-      { name: "Admin User", email: "admin@primewave.lk", role: "admin" },
-      { name: "Nimal Perera", email: "nimal@primewave.lk" },
-      { name: "Kamala Silva", email: "kamala@primewave.lk" },
+      { name: "Admin User", email: "admin@primewave.lk", role: "admin", passwordHash: bcrypt.hashSync("admin123", 10) },
+      { name: "Nimal Perera", email: "nimal@primewave.lk", passwordHash: bcrypt.hashSync("nimal123", 10) },
+      { name: "Kamala Silva", email: "kamala@primewave.lk", passwordHash: bcrypt.hashSync("kamala123", 10) },
     ])
     .returning();
 
