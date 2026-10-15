@@ -1,10 +1,12 @@
 @import "tailwindcss";
 
 /*
+  Light theme only, whatever the system setting.
   Palette: midnight violet primary, papaya whip background and warnings,
   ash grey for free time, raspberry red for booked/errors.
 */
 :root {
+  color-scheme: light; /* native controls (date pickers, selects, scrollbars) stay light too */
   --background: #fef6e7;
   --foreground: #231022;
   --surface: #ffffff;
@@ -21,27 +23,6 @@
   --danger: #e01f5f;
   --danger-soft: #fce9ef;
   --danger-text: #871239;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #180b18;
-    --foreground: #f7eef7;
-    --surface: #231022;
-    --border: #452144;
-    --muted: #ce97cc;
-    --primary: #8b4188;
-    --primary-hover: #ad52aa;
-    --link: #ce97cc;
-    --success: #67988a;
-    --success-soft: #293d37;
-    --success-text: #c2d6d0;
-    --warning-soft: #614205;
-    --warning-text: #fadb9e;
-    --danger: #e01f5f;
-    --danger-soft: #5a0c26;
-    --danger-text: #f3a5bf;
-  }
 }
 
 @theme inline {
