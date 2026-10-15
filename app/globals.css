@@ -1,26 +1,72 @@
 @import "tailwindcss";
 
+/*
+  Palette: midnight violet primary, papaya whip background and warnings,
+  ash grey for free time, raspberry red for booked/errors.
+*/
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fef6e7;
+  --foreground: #231022;
+  --surface: #ffffff;
+  --border: #efdcee;
+  --muted: #8b4188;
+  --primary: #683166;
+  --primary-hover: #452144;
+  --link: #683166;
+  --success: #67988a;
+  --success-soft: #e1eae8;
+  --success-text: #293d37;
+  --warning-soft: #fdedce;
+  --warning-text: #614205;
+  --danger: #e01f5f;
+  --danger-soft: #fce9ef;
+  --danger-text: #871239;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #180b18;
+    --foreground: #f7eef7;
+    --surface: #231022;
+    --border: #452144;
+    --muted: #ce97cc;
+    --primary: #8b4188;
+    --primary-hover: #ad52aa;
+    --link: #ce97cc;
+    --success: #67988a;
+    --success-soft: #293d37;
+    --success-text: #c2d6d0;
+    --warning-soft: #614205;
+    --warning-text: #fadb9e;
+    --danger: #e01f5f;
+    --danger-soft: #5a0c26;
+    --danger-text: #f3a5bf;
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-link: var(--link);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-success-text: var(--success-text);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-text: var(--warning-text);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-danger-text: var(--danger-text);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }

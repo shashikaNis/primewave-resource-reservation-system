@@ -19,7 +19,7 @@ export default function LoginForm() {
           required
           autoComplete="email"
           defaultValue={state.email}
-          className="rounded-md border border-zinc-300 bg-transparent px-3 py-2 dark:border-zinc-700"
+          className="rounded-md border border-border bg-surface px-3 py-2"
         />
       </div>
 
@@ -33,12 +33,12 @@ export default function LoginForm() {
           type="password"
           required
           autoComplete="current-password"
-          className="rounded-md border border-zinc-300 bg-transparent px-3 py-2 dark:border-zinc-700"
+          className="rounded-md border border-border bg-surface px-3 py-2"
         />
       </div>
 
       {state.error && (
-        <p role="alert" className="text-sm text-red-600">
+        <p role="alert" className="text-sm text-danger-text">
           {state.error}
         </p>
       )}
@@ -46,7 +46,7 @@ export default function LoginForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-md bg-emerald-600 px-4 py-2 font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
+        className="rounded-md bg-primary px-4 py-2 font-medium text-white hover:bg-primary-hover disabled:opacity-60"
       >
         {isPending ? "Logging in..." : "Log in"}
       </button>
