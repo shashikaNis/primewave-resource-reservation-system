@@ -1,10 +1,11 @@
 "use server";
 
-import { and, asc, DrizzleQueryError, eq, gt, lt } from "drizzle-orm";
+import { and, asc, eq, gt, lt } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { reservations, resources } from "@/db/schema";
+import { EXCLUSION_VIOLATION, isPostgresError } from "@/lib/db-errors";
 import { formatShortDate, formatTime } from "@/lib/format";
 import { getCurrentUser } from "@/lib/session";
 
@@ -46,7 +47,7 @@ export async function createReservation(
     await db.insert(reservations).values({ resourceId, userId: user.id, title, startTime, endTime });
   } catch (error) {
     // The database rejects overlapping bookings (see no_overlapping_reservations constraint).
-    if (!isOverlapError(error)) throw error;
+    if (!isPostgresError(error, EXCLUSION_VIOLATION)) throw error;
 
     const [clash] = await db
       .select({ startTime: reservations.startTime, endTime: reservations.endTime })
@@ -73,10 +74,6 @@ export async function createReservation(
 
   revalidatePath("/", "layout");
   redirect(`/resources/${resourceId}?date=${start.slice(0, 10)}&booked=1`);
-}
-
-function isOverlapError(error: unknown) {
-  return error instanceof DrizzleQueryError && (error.cause as { code?: string } | undefined)?.code === "23P01";
 }
 
 // Only the person who made the booking, or an admin, can cancel it, and only before it ends.

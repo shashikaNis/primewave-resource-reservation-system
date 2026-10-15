@@ -52,6 +52,13 @@ export async function getCurrentUser() {
   return user;
 }
 
+// The logged-in admin; sends everyone else back to the home page.
+export async function requireAdmin() {
+  const user = await getCurrentUser();
+  if (user.role !== "admin") redirect("/");
+  return user;
+}
+
 export async function deleteSession() {
   const cookieStore = await cookies();
   const sessionId = cookieStore.get("session")?.value;

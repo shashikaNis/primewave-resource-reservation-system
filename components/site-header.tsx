@@ -15,7 +15,7 @@ export default async function SiteHeader() {
           <Link href="/" className="font-semibold">
             PrimeWave Reservations
           </Link>
-          <NavLinks />
+          <NavLinks isAdmin={user.role === "admin"} />
         </div>
         <div className="flex items-center gap-3">
           <p className="text-sm">

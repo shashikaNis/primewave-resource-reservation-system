@@ -9,12 +9,17 @@ const links = [
   { href: "/reservations", label: "My reservations" },
 ];
 
-export default function NavLinks() {
+const adminLinks = [
+  { href: "/admin/resources", label: "Manage resources" },
+  { href: "/admin/reservations", label: "All reservations" },
+];
+
+export default function NavLinks({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname();
 
   return (
     <nav className="flex flex-wrap gap-1">
-      {links.map((link) => {
+      {(isAdmin ? [...links, ...adminLinks] : links).map((link) => {
         // "/resources/12" still highlights "Resources".
         const isActive = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
         return (
