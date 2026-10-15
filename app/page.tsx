@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { logout } from "@/app/actions/auth";
 import { getCurrentUser } from "@/lib/session";
 
@@ -8,6 +9,9 @@ export default function HomePage() {
       <Suspense fallback={<p>Loading...</p>}>
         <Welcome />
       </Suspense>
+      <Link href="/resources" className="mt-8 inline-block text-emerald-700 hover:underline">
+        Browse resources →
+      </Link>
     </main>
   );
 }

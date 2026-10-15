@@ -15,7 +15,7 @@ export async function createSession(userId: number) {
 
   const cookieStore = await cookies();
   cookieStore.set("session", sessionId, {
-    httpOnly: true, // not readable from browser JavaScript
+    httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
