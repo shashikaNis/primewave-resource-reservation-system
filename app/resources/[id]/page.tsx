@@ -6,7 +6,9 @@ import { and, asc, eq, gt, lt } from "drizzle-orm";
 import { db } from "@/db";
 import { reservations, resources, users } from "@/db/schema";
 import { formatLongDate, formatTime } from "@/lib/format";
+import CancelButton from "@/components/cancel-button";
 import { getCurrentUser } from "@/lib/session";
+import BookingForm from "./booking-form";
 
 // Bookable hours used to work out free slots.
 const OPENING_HOUR = 8;
@@ -37,7 +39,7 @@ export default function ResourceAvailabilityPage({
 async function Availability({ params, searchParams }: { params: Params; searchParams: SearchParams }) {
   const user = await getCurrentUser();
   const { id } = await params;
-  const { date } = await searchParams;
+  const { date, start, end, booked } = await searchParams;
 
   const resourceId = Number(id);
   if (!Number.isInteger(resourceId)) notFound();
@@ -55,6 +57,7 @@ async function Availability({ params, searchParams }: { params: Params; searchPa
       startTime: reservations.startTime,
       endTime: reservations.endTime,
       bookedBy: users.name,
+      userId: reservations.userId,
     })
     .from(reservations)
     .innerJoin(users, eq(reservations.userId, users.id))
@@ -70,7 +73,19 @@ async function Availability({ params, searchParams }: { params: Params; searchPa
 
   const openTime = atHour(dayStart, OPENING_HOUR);
   const closeTime = atHour(dayStart, CLOSING_HOUR);
-  const freeSlots = findFreeSlots(bookings, openTime, closeTime, new Date());
+  const now = new Date();
+  const freeSlots = findFreeSlots(bookings, openTime, closeTime, now);
+  const canBook = resource.isActive && dayEnd > now;
+
+  // Prefill the booking form from a clicked free slot, or suggest the first free hour.
+  const dateString = toDateString(dayStart);
+  const firstSlot = freeSlots[0];
+  const defaultStart = isTime(start)
+    ? `${dateString}T${start}`
+    : toDateTimeString(firstSlot ? firstSlot.start : atHour(dayStart, 9));
+  const defaultEnd = isTime(end)
+    ? `${dateString}T${end}`
+    : toDateTimeString(firstSlot ? suggestedEnd(firstSlot) : atHour(dayStart, 10));
 
   return (
     <>
@@ -80,6 +95,11 @@ async function Availability({ params, searchParams }: { params: Params; searchPa
           .filter(Boolean)
           .join(" · ")}
       </p>
+      {booked === "1" && (
+        <p role="status" className="mt-4 rounded-md bg-success-soft px-3 py-2 text-sm text-success-text">
+          Your booking is confirmed.
+        </p>
+      )}
       {!resource.isActive && (
         <p className="mt-2 text-sm text-danger-text">This resource is inactive and cannot be booked.</p>
       )}
@@ -130,9 +150,17 @@ async function Availability({ params, searchParams }: { params: Params; searchPa
               {freeSlots.map((slot) => (
                 <li
                   key={slot.start.toISOString()}
-                  className="rounded-md bg-success-soft px-3 py-2 text-sm text-success-text"
+                  className="flex items-center justify-between rounded-md bg-success-soft px-3 py-2 text-sm text-success-text"
                 >
                   {formatTime(slot.start)} – {formatTime(slot.end)}
+                  {canBook && (
+                    <Link
+                      href={`/resources/${resourceId}?date=${dateString}&start=${formatTime(slot.start)}&end=${formatTime(suggestedEnd(slot))}#book`}
+                      className="font-medium underline hover:no-underline"
+                    >
+                      Book
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>
@@ -151,13 +179,31 @@ async function Availability({ params, searchParams }: { params: Params; searchPa
                     {formatTime(booking.startTime)} – {formatTime(booking.endTime)}
                   </p>
                   <p>{booking.title}</p>
-                  <p className="text-muted">Booked by {booking.bookedBy}</p>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-muted">Booked by {booking.bookedBy}</p>
+                    {/* The person who booked, or an admin, can cancel a booking that has not ended. */}
+                    {(booking.userId === user.id || user.role === "admin") && booking.endTime > now && (
+                      <CancelButton reservationId={booking.id} title={booking.title} />
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>
           )}
         </div>
       </section>
+
+      {canBook && (
+        <section id="book" className="mt-8 scroll-mt-4">
+          <h2 className="mb-3 text-lg font-semibold">Book {resource.name}</h2>
+          <BookingForm
+            key={`${defaultStart}-${defaultEnd}`}
+            resourceId={resourceId}
+            defaultStart={defaultStart}
+            defaultEnd={defaultEnd}
+          />
+        </section>
+      )}
     </>
   );
 }
@@ -215,7 +261,7 @@ function Timeline({ bookings, openTime, closeTime }: { bookings: Booking[]; open
 // Gaps between bookings within opening hours. Time that has already passed is not free.
 function findFreeSlots(bookings: Booking[], openTime: Date, closeTime: Date, now: Date) {
   const freeSlots: { start: Date; end: Date }[] = [];
-  let cursor = now > openTime ? now : openTime;
+  let cursor = now > openTime ? roundUpToQuarterHour(now) : openTime;
 
   for (const booking of bookings) {
     const gapEnd = booking.startTime < closeTime ? booking.startTime : closeTime;
@@ -254,4 +300,23 @@ function toDateString(date: Date) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${date.getFullYear()}-${month}-${day}`;
+}
+
+function toDateTimeString(date: Date) {
+  return `${toDateString(date)}T${formatTime(date)}`;
+}
+
+function isTime(value: string | string[] | undefined): value is string {
+  return typeof value === "string" && /^\d{2}:\d{2}$/.test(value);
+}
+
+// One hour after the slot starts, or the end of the slot if that is sooner.
+function suggestedEnd(slot: { start: Date; end: Date }) {
+  const oneHourLater = new Date(slot.start.getTime() + 60 * 60 * 1000);
+  return oneHourLater < slot.end ? oneHourLater : slot.end;
+}
+
+function roundUpToQuarterHour(date: Date) {
+  const quarterHour = 15 * 60 * 1000;
+  return new Date(Math.ceil(date.getTime() / quarterHour) * quarterHour);
 }

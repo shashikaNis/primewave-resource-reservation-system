@@ -12,10 +12,7 @@ type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 export default function ResourcesPage({ searchParams }: { searchParams: SearchParams }) {
   return (
     <main className="mx-auto w-full max-w-5xl px-4 py-10">
-      <Link href="/" className="text-sm text-muted hover:underline">
-        ← Home
-      </Link>
-      <h1 className="mt-2 text-2xl font-semibold">Resources</h1>
+      <h1 className="text-2xl font-semibold">Resources</h1>
       <p className="mb-6 text-sm text-muted">Browse rooms, equipment and vehicles you can book.</p>
 
       <Suspense fallback={<p>Loading resources...</p>}>

@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import { cache } from "react";
 import { and, eq, gt } from "drizzle-orm";
 import { io } from "next/cache";
 import { cookies } from "next/headers";
@@ -25,12 +26,12 @@ export async function createSession(userId: number) {
 }
 
 
-export async function getCurrentUser() {
+// The logged-in user, or null. cache() means the header and the page share one lookup per request.
+export const getSessionUser = cache(async () => {
   const cookieStore = await cookies();
-  const sessionId = cookieStore.get("session"
-  )?.value;
+  const sessionId = cookieStore.get("session")?.value;
 
-  if (!sessionId) redirect("/login");
+  if (!sessionId) return null;
 
   // Pages that read the current time (here and after this call) must not be prerendered.
   await io();
@@ -41,6 +42,12 @@ export async function getCurrentUser() {
     .innerJoin(users, eq(sessions.userId, users.id))
     .where(and(eq(sessions.id, sessionId), gt(sessions.expiresAt, new Date())));
 
+  return user ?? null;
+});
+
+// The logged-in user; sends visitors who are not logged in to the login page.
+export async function getCurrentUser() {
+  const user = await getSessionUser();
   if (!user) redirect("/login");
   return user;
 }

@@ -1,10 +1,10 @@
 import { Suspense, type ReactNode } from "react";
 import Link from "next/link";
 import { and, asc, count, countDistinct, eq, gt, lt, lte } from "drizzle-orm";
-import { logout } from "@/app/actions/auth";
 import { db } from "@/db";
 import { reservations, resources, users } from "@/db/schema";
 import { formatLongDate, formatShortDate, formatTime } from "@/lib/format";
+import CancelButton from "@/components/cancel-button";
 import { getCurrentUser } from "@/lib/session";
 
 export default function HomePage() {
@@ -96,7 +96,7 @@ async function Dashboard() {
 
   return (
     <>
-      <header className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="text-sm text-muted">{formatLongDate(now)}</p>
           <h1 className="text-2xl font-semibold">Welcome, {user.name}</h1>
@@ -111,16 +111,8 @@ async function Dashboard() {
           >
             Browse resources
           </Link>
-          <form action={logout}>
-            <button
-              type="submit"
-              className="rounded-md border border-border bg-surface px-4 py-2 text-sm hover:bg-background"
-            >
-              Log out
-            </button>
-          </form>
         </div>
-      </header>
+      </div>
 
       <section className="mt-8 grid gap-4 sm:grid-cols-3">
         <StatCard label="Available right now" value={`${activeCount - inUseCount} of ${activeCount}`} />
@@ -130,7 +122,12 @@ async function Dashboard() {
 
       <div className="mt-8 grid gap-8 lg:grid-cols-2">
         <section>
-          <h2 className="mb-3 text-lg font-semibold">Your upcoming bookings</h2>
+          <div className="mb-3 flex items-baseline justify-between">
+            <h2 className="text-lg font-semibold">Your upcoming bookings</h2>
+            <Link href="/reservations" className="text-sm text-link hover:underline">
+              View all →
+            </Link>
+          </div>
           {myUpcoming.length === 0 ? (
             <EmptyState>
               You have no upcoming bookings.{" "}
@@ -156,9 +153,12 @@ async function Dashboard() {
                       {formatShortDate(booking.startTime)} · {formatTime(booking.startTime)} –{" "}
                       {formatTime(booking.endTime)}
                     </p>
-                    <Link href={`/resources/${booking.resourceId}`} className="text-sm text-link hover:underline">
-                      {booking.resourceName}
-                    </Link>
+                    <div className="flex items-center justify-between gap-2">
+                      <Link href={`/resources/${booking.resourceId}`} className="text-sm text-link hover:underline">
+                        {booking.resourceName}
+                      </Link>
+                      <CancelButton reservationId={booking.id} title={booking.title} />
+                    </div>
                   </li>
                 );
               })}
