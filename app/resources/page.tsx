@@ -4,6 +4,7 @@ import Link from "next/link";
 import { and, asc, eq, gt, ilike, lte, or, type SQL } from "drizzle-orm";
 import { db } from "@/db";
 import { reservations, resources } from "@/db/schema";
+import { formatTime } from "@/lib/format";
 import { getCurrentUser } from "@/lib/session";
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -150,9 +151,10 @@ function StatusBadge({ isActive, bookedUntil }: { isActive: boolean; bookedUntil
     return <span className="rounded-full border border-border px-2 py-0.5 text-xs text-muted">Inactive</span>;
   }
   if (bookedUntil) {
-    const time = bookedUntil.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
     return (
-      <span className="rounded-full bg-warning-soft px-2 py-0.5 text-xs text-warning-text">In use until {time}</span>
+      <span className="rounded-full bg-warning-soft px-2 py-0.5 text-xs text-warning-text">
+        In use until {formatTime(bookedUntil)}
+      </span>
     );
   }
   return <span className="rounded-full bg-success-soft px-2 py-0.5 text-xs text-success-text">Available now</span>;

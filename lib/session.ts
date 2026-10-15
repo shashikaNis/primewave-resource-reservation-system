@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { and, eq, gt } from "drizzle-orm";
+import { io } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
@@ -30,6 +31,9 @@ export async function getCurrentUser() {
   )?.value;
 
   if (!sessionId) redirect("/login");
+
+  // Pages that read the current time (here and after this call) must not be prerendered.
+  await io();
 
   const [user] = await db
     .select({ id: users.id, name: users.name, email: users.email, role: users.role })

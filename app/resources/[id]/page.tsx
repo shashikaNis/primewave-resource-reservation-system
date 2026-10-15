@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { and, asc, eq, gt, lt } from "drizzle-orm";
 import { db } from "@/db";
 import { reservations, resources, users } from "@/db/schema";
+import { formatLongDate, formatTime } from "@/lib/format";
 import { getCurrentUser } from "@/lib/session";
 
 // Bookable hours used to work out free slots.
@@ -113,7 +114,7 @@ async function Availability({ params, searchParams }: { params: Params; searchPa
       </div>
 
       <h2 className="mt-6 font-semibold">
-        {dayStart.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+        {formatLongDate(dayStart)}
       </h2>
       <Timeline bookings={bookings} openTime={openTime} closeTime={closeTime} />
 
@@ -253,8 +254,4 @@ function toDateString(date: Date) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${date.getFullYear()}-${month}-${day}`;
-}
-
-function formatTime(date: Date) {
-  return date.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 }
